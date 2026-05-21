@@ -3,8 +3,6 @@ name: Snowflake Deployment
 on:
   push:
     branches:
-      - develop
-      - QA
       - main
 
   workflow_dispatch:
