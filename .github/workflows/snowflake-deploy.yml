@@ -67,11 +67,11 @@ jobs:
       - name: Execute SQL Scripts
         run: |
 
-          echo "Executing create_tables.sql"
+          echo "Executing cust_revenue_ddl.sql"
 
           snow sql \
             --connection github_connection \
-            -f scripts/create_tables.sql
+            -f scripts/cust_revenue_ddl.sql
 
           echo "Executing views.sql"
 
