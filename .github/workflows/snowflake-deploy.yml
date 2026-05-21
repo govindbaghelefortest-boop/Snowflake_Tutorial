@@ -73,18 +73,6 @@ jobs:
             --connection github_connection \
             -f scripts/cust_revenue_ddl.sql
 
-          echo "Executing views.sql"
-
-          snow sql \
-            --connection github_connection \
-            -f scripts/views.sql
-
-          echo "Executing procedures.sql"
-
-          snow sql \
-            --connection github_connection \
-            -f scripts/procedures.sql
-
       # Step 7 - Deployment Success Message
       - name: Deployment Completed
         run: |
