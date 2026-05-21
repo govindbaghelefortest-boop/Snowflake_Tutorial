@@ -7,40 +7,85 @@ on:
       - QA
       - main
 
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     env:
-     FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+      SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+      SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
 
     steps:
 
+      # Step 1 - Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install SnowSQL
+      # Step 2 - Install Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Step 3 - Install Snowflake CLI
+      - name: Install Snowflake CLI
         run: |
           pip install snowflake-cli-labs
 
+      # Step 4 - Verify Installation
+      - name: Verify Snowflake CLI
+        run: |
+          snow --version
+
+      # Step 5 - Test Snowflake Connection
       - name: Test Snowflake Connection
         run: |
-          snowsql -a $SNOWFLAKE_ACCOUNT \
-                   -u $SNOWFLAKE_USER \
-                   -p $SNOWFLAKE_PASSWORD \
-                   -w $SNOWFLAKE_WAREHOUSE \
-                   -d $SNOWFLAKE_DATABASE \
-                   -s $SNOWFLAKE_SCHEMA \
-                   -r $SNOWFLAKE_ROLE \
-                   -q "SELECT CURRENT_VERSION();"
+          snow connection add github_connection \
+            --account $SNOWFLAKE_ACCOUNT \
+            --user $SNOWFLAKE_USER \
+            --password $SNOWFLAKE_PASSWORD \
+            --warehouse $SNOWFLAKE_WAREHOUSE \
+            --database $SNOWFLAKE_DATABASE \
+            --schema $SNOWFLAKE_SCHEMA \
+            --role $SNOWFLAKE_ROLE
 
-      - name: Execute SQL Script
+          snow sql \
+            --connection github_connection \
+            -q "SELECT CURRENT_VERSION();"
+
+      # Step 6 - Execute SQL Scripts
+      - name: Execute SQL Scripts
         run: |
-          snowsql -a $SNOWFLAKE_ACCOUNT \
-                   -u $SNOWFLAKE_USER \
-                   -p $SNOWFLAKE_PASSWORD \
-                   -w $SNOWFLAKE_WAREHOUSE \
-                   -d $SNOWFLAKE_DATABASE \
-                   -s $SNOWFLAKE_SCHEMA \
-                   -r $SNOWFLAKE_ROLE \
-                   -f scripts/create_tables.sql
+
+          echo "Executing create_tables.sql"
+
+          snow sql \
+            --connection github_connection \
+            -f scripts/create_tables.sql
+
+          echo "Executing views.sql"
+
+          snow sql \
+            --connection github_connection \
+            -f scripts/views.sql
+
+          echo "Executing procedures.sql"
+
+          snow sql \
+            --connection github_connection \
+            -f scripts/procedures.sql
+
+      # Step 7 - Deployment Success Message
+      - name: Deployment Completed
+        run: |
+          echo "Snowflake Deployment Completed Successfully"
