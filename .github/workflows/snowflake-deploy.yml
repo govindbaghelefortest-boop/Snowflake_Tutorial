@@ -74,7 +74,7 @@ jobs:
       - name: Execute SQL Scripts
         run: |
 
-          echo "Running cust_revenue_ddl.sql"
+          echo "Running scripts/create_tables.sql"
 
           snow sql \
             --temporary-connection \
@@ -85,7 +85,7 @@ jobs:
             --database $SNOWFLAKE_DATABASE \
             --schema $SNOWFLAKE_SCHEMA \
             --role $SNOWFLAKE_ROLE \
-            -f ./scripts/cust_revenue_ddl.sql
+            -f ./scripts/create_tables.sql
 
       # Step 8 - Deployment Completed
       - name: Deployment Completed
