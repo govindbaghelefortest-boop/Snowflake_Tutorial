@@ -74,7 +74,7 @@ jobs:
       - name: Execute SQL Scripts
         run: |
 
-          echo "Running create_tables.sql"
+          echo "Running cust_revenue_ddl.sql"
 
           snow sql \
             --temporary-connection \
@@ -85,33 +85,7 @@ jobs:
             --database $SNOWFLAKE_DATABASE \
             --schema $SNOWFLAKE_SCHEMA \
             --role $SNOWFLAKE_ROLE \
-            -f ./scripts/create_tables.sql
-
-          echo "Running views.sql"
-
-          snow sql \
-            --temporary-connection \
-            --account $SNOWFLAKE_ACCOUNT \
-            --user $SNOWFLAKE_USER \
-            --password $SNOWFLAKE_PASSWORD \
-            --warehouse $SNOWFLAKE_WAREHOUSE \
-            --database $SNOWFLAKE_DATABASE \
-            --schema $SNOWFLAKE_SCHEMA \
-            --role $SNOWFLAKE_ROLE \
-            -f ./scripts/views.sql
-
-          echo "Running procedures.sql"
-
-          snow sql \
-            --temporary-connection \
-            --account $SNOWFLAKE_ACCOUNT \
-            --user $SNOWFLAKE_USER \
-            --password $SNOWFLAKE_PASSWORD \
-            --warehouse $SNOWFLAKE_WAREHOUSE \
-            --database $SNOWFLAKE_DATABASE \
-            --schema $SNOWFLAKE_SCHEMA \
-            --role $SNOWFLAKE_ROLE \
-            -f ./scripts/procedures.sql
+            -f ./scripts/cust_revenue_ddl.sql
 
       # Step 8 - Deployment Completed
       - name: Deployment Completed
