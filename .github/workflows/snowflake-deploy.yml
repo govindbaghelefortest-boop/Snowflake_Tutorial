@@ -1,0 +1,52 @@
+name: Snowflake Deployment
+
+on:
+  push:
+    branches:
+      - develop
+      - QA
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+      SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+      SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install SnowSQL
+        run: |
+          pip install snowflake-cli-labs
+
+      - name: Test Snowflake Connection
+        run: |
+          snowsql -a $SNOWFLAKE_ACCOUNT \
+                   -u $SNOWFLAKE_USER \
+                   -p $SNOWFLAKE_PASSWORD \
+                   -w $SNOWFLAKE_WAREHOUSE \
+                   -d $SNOWFLAKE_DATABASE \
+                   -s $SNOWFLAKE_SCHEMA \
+                   -r $SNOWFLAKE_ROLE \
+                   -q "SELECT CURRENT_VERSION();"
+
+      - name: Execute SQL Script
+        run: |
+          snowsql -a $SNOWFLAKE_ACCOUNT \
+                   -u $SNOWFLAKE_USER \
+                   -p $SNOWFLAKE_PASSWORD \
+                   -w $SNOWFLAKE_WAREHOUSE \
+                   -d $SNOWFLAKE_DATABASE \
+                   -s $SNOWFLAKE_SCHEMA \
+                   -r $SNOWFLAKE_ROLE \
+                   -f scripts/create_tables.sql
