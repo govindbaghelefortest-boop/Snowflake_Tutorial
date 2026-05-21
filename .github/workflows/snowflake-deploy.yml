@@ -42,7 +42,7 @@ jobs:
         run: |
           pip install snowflake-cli-labs
 
-      # Verify Installation
+      # Verify Snowflake CLI
       - name: Verify Snowflake CLI
         run: |
           snow --version
@@ -51,6 +51,7 @@ jobs:
       - name: Test Snowflake Connection
         run: |
           snow sql \
+            --temporary-connection \
             --account $SNOWFLAKE_ACCOUNT \
             --user $SNOWFLAKE_USER \
             --password $SNOWFLAKE_PASSWORD \
@@ -64,6 +65,7 @@ jobs:
       - name: Execute SQL Script
         run: |
           snow sql \
+            --temporary-connection \
             --account $SNOWFLAKE_ACCOUNT \
             --user $SNOWFLAKE_USER \
             --password $SNOWFLAKE_PASSWORD \
