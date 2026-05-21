@@ -25,27 +25,27 @@ jobs:
 
     steps:
 
-      # Step 1 - Checkout Repository
+      # Checkout Repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Step 2 - Setup Python
+      # Setup Python
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # Step 3 - Install Snowflake CLI
+      # Install Snowflake CLI
       - name: Install Snowflake CLI
         run: |
           pip install snowflake-cli-labs
 
-      # Step 4 - Verify Installation
+      # Verify Snowflake CLI
       - name: Verify Snowflake CLI
         run: |
           snow --version
 
-      # Step 5 - Verify Repository Files
+      # Verify Repository Structure
       - name: Verify Repository Structure
         run: |
           echo "Current Directory:"
@@ -54,7 +54,7 @@ jobs:
           echo "Repository Files:"
           ls -R
 
-      # Step 6 - Test Snowflake Connection
+      # Test Snowflake Connection
       - name: Test Snowflake Connection
         run: |
           snow sql \
@@ -68,24 +68,40 @@ jobs:
             --role $SNOWFLAKE_ROLE \
             -q "SELECT CURRENT_VERSION();"
 
-      # Step 7 - Execute SQL Scripts
-      - name: Execute SQL Scripts
+      # Execute Only Changed SQL Files
+      - name: Execute Changed SQL Scripts
         run: |
 
-          echo "Running scripts/create_tables.sql"
+          echo "Checking changed SQL files..."
 
-          snow sql \
-            --temporary-connection \
-            --account $SNOWFLAKE_ACCOUNT \
-            --user $SNOWFLAKE_USER \
-            --password $SNOWFLAKE_PASSWORD \
-            --warehouse $SNOWFLAKE_WAREHOUSE \
-            --database $SNOWFLAKE_DATABASE \
-            --schema $SNOWFLAKE_SCHEMA \
-            --role $SNOWFLAKE_ROLE \
-            -f ./scripts/create_tables.sql
+          files=$(git diff --name-only HEAD~1 HEAD | grep '^scripts/.*\.sql$' || true)
 
-      # Step 8 - Deployment Completed
+          echo "Changed SQL Files:"
+          echo "$files"
+
+          if [ -z "$files" ]; then
+            echo "No SQL files changed."
+            exit 0
+          fi
+
+          for file in $files
+          do
+            echo "Executing $file"
+
+            snow sql \
+              --temporary-connection \
+              --account $SNOWFLAKE_ACCOUNT \
+              --user $SNOWFLAKE_USER \
+              --password $SNOWFLAKE_PASSWORD \
+              --warehouse $SNOWFLAKE_WAREHOUSE \
+              --database $SNOWFLAKE_DATABASE \
+              --schema $SNOWFLAKE_SCHEMA \
+              --role $SNOWFLAKE_ROLE \
+              -f "$file"
+
+          done
+
+      # Deployment Success Message
       - name: Deployment Completed
         run: |
           echo "Snowflake Deployment Completed Successfully"
